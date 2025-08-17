@@ -1,0 +1,130 @@
+:host {
+  --primary-color: #3880ff;
+  --secondary-color: #0cd1e8;
+}
+
+.dashboard-container {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  background: linear-gradient(135deg,
+    rgba(56, 128, 255, 0.9) 0%,
+    rgba(56, 128, 255, 0.7) 50%,
+    rgba(56, 128, 255, 0.85) 100%);
+
+  .dashboard-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 56px);
+    z-index: 1;
+    padding: 2rem;
+
+    .brand-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+
+      .owl-logo-large {
+        width: 120px;
+        height: 120px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+
+      .brand-title-large {
+        font-size: 3rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.5px;
+      }
+
+      .brand-subtitle {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-weight: 400;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dashboard-container {
+    .dashboard-content {
+      padding: 1.5rem;
+
+      .brand-main {
+        .owl-logo-large {
+          width: 100px;
+          height: 100px;
+        }
+
+        .brand-title-large {
+          font-size: 2.5rem;
+        }
+
+        .brand-subtitle {
+          font-size: 1.3rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    .dashboard-content {
+      padding: 1rem;
+
+      .brand-main {
+        .owl-logo-large {
+          width: 80px;
+          height: 80px;
+        }
+
+        .brand-title-large {
+          font-size: 2rem;
+        }
+
+        .brand-subtitle {
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 320px) {
+  .dashboard-container {
+    .dashboard-content {
+      padding: 0.5rem;
+
+      .brand-main {
+        .owl-logo-large {
+          width: 70px;
+          height: 70px;
+        }
+
+        .brand-title-large {
+          font-size: 1.8rem;
+        }
+
+        .brand-subtitle {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}

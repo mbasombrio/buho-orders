@@ -1,0 +1,90 @@
+<div class="login-container">
+  <!-- Background overlay -->
+  <div class="login-background"></div>
+
+  <!-- Main content -->
+  <div class="login-content">
+    <!-- Login form section with unified layout -->
+    <div class="login-form-section">
+      <!-- External branding (above card) -->
+      <div class="external-branding">
+        <div class="brand-main">
+          <img src="assets/icon/favicon.png" alt="BuhoManager" class="owl-logo-large">
+          <h1 class="brand-title-large">BuhoManager</h1>
+          <p class="brand-subtitle">Sistema de Gestión y Facturación</p>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <div class="form-header">
+          <!-- Unified header for both desktop and mobile -->
+          <div class="unified-header">
+            <h2 class="form-title">Iniciar Sesión</h2>
+            <p class="form-subtitle">Ingrese sus credenciales para continuar</p>
+          </div>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+          <!-- Client field -->
+          <div class="form-field" *ngIf="checkMulticlient()">
+            <ion-item class="full-width margin-10">
+              <ion-label position="floating">Cliente</ion-label>
+              <ion-input formControlName="client" #cliente (keyup.enter)="onLogin()" autofocus required>
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="hasError('client', 'required') && loginForm.get('client')?.touched">
+              Complete el campo cliente
+            </div>
+          </div>
+
+          <!-- Username field -->
+          <div class="form-field">
+            <ion-item class="full-width margin-10">
+              <ion-label position="floating">Usuario</ion-label>
+              <ion-input formControlName="user" #username (keyup.enter)="onLogin()" required>
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="hasError('user', 'required') && loginForm.get('user')?.touched">
+              Complete el campo usuario
+            </div>
+          </div>
+
+          <!-- Password field -->
+          <div class="form-field">
+            <ion-item class="full-width margin-10">
+              <ion-label position="floating">Contraseña</ion-label>
+              <ion-input formControlName="pass" #password [type]="showPassword ? 'text' : 'password'"
+                (keyup.enter)="onLogin()" required>
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="hasError('pass', 'required') && loginForm.get('pass')?.touched">
+              Complete el campo contraseña
+            </div>
+          </div>
+
+          <!-- Loading indicator -->
+          <div class="loading-container" *ngIf="loading">
+            <ion-progress-bar color="primary" type="indeterminate"></ion-progress-bar>
+          </div>
+
+          <!-- Login button -->
+          <div class="form-actions">
+            <ion-button expand="block" type="submit" class="login-button" [disabled]="loading || loginForm.invalid">
+              <span *ngIf="!loading">Iniciar Sesión</span>
+              <span *ngIf="loading">Iniciando sesión...</span>
+            </ion-button>
+          </div>
+        </form>
+      </div>
+
+      <!-- External footer (below card) -->
+      <div class="external-footer">
+        <div class="system-info">
+          <span class="client-label">{{ displayClient }}</span>
+        </div>
+        <p class="version">Versión {{ environment.appVersion || '1.0.0' }}</p>
+        <p class="copyright">© {{ currentYear }} URS Company</p>
+      </div>
+    </div>
+  </div>
+</div>

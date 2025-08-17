@@ -1,0 +1,41 @@
+<!-- Layout principal con sidebar -->
+<ion-split-pane contentId="main-content">
+
+  <!-- Sidebar Menu -->
+  <ion-menu contentId="main-content" type="overlay">
+    <ion-content>
+      <ion-list id="inbox-list">
+        <div class="client-info">
+          <h1>BuhoManager</h1>
+          <span>{{ displayClient }}</span>
+        </div>
+
+        @for (p of appPages; track p; let i = $index) {
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"
+            routerLinkActive="selected">
+            <ion-icon aria-hidden="true" slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'">
+            </ion-icon>
+            <ion-label>{{ p.title }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        }
+      </ion-list>
+
+      <!-- Botón de logout -->
+      <ion-list>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button (click)="logout()" lines="none" detail="false">
+            <ion-icon aria-hidden="true" slot="start" ios="log-out-outline" md="log-out-sharp">
+            </ion-icon>
+            <ion-label>Cerrar Sesión</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <!-- Contenido principal con router-outlet para páginas hijas -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
+</ion-split-pane>

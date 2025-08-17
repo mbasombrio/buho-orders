@@ -1,0 +1,82 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Pedidos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addNewOrder()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- Lista de pedidos -->
+  <ion-card>
+    <ion-card-content>
+      @if (orderResponse.rows.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="receipt-outline" size="large"></ion-icon>
+        <h3>No hay pedidos</h3>
+        <p>Comienza agregando un nuevo pedido</p>
+        <ion-button (click)="addNewOrder()">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Agregar Pedido
+        </ion-button>
+      </div>
+      } @else {
+      <ion-list>
+        @for (order of orderResponse.rows; track order.id) {
+        <ion-item-sliding>
+          <ion-item button (click)="viewOrderDetails(order)">
+            <ion-label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600; font-size: 1.2rem; color: var(--ion-color-dark);">#{{ order.id }}</span>
+                <span style="color: var(--ion-color-medium); font-size: 0.9rem; font-weight: 500;">{{ order.open | date:
+                  'dd/MM/yyyy' }}</span>
+              </div>
+              <h3>{{ order.customer.name }}</h3>
+              <div class="order-details">
+                <ion-chip size="small" [color]="getDeliveryTypeColor(order)">
+                  <ion-icon name="{{ getDeliveryType(order) === 'Envío' ? 'car' : 'storefront' }}"></ion-icon>
+                  <ion-label>{{ getDeliveryType(order) }}</ion-label>
+                </ion-chip>
+                <ion-chip size="small" color="medium">
+                  <ion-icon name="business"></ion-icon>
+                  <ion-label>{{ getBranchName(order) }}</ion-label>
+                </ion-chip>
+              </div>
+
+              <div class="order-bottom">
+                <ion-chip [color]="getStatusColor(order.state)" class="status-chip">
+                  {{ getStatusText(order.state) }}
+                </ion-chip>
+                <span class="order-total">${{ showTotal(order) | number:'1.2-2' }}</span>
+              </div>
+            </ion-label>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option (click)="editOrder(order)" color="primary">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-item-option>
+            <ion-item-option (click)="deleteOrder(order)" color="danger">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+        }
+      </ion-list>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addNewOrder()" color="success">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
