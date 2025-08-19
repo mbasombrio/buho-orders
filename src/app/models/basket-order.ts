@@ -5,7 +5,7 @@ import { BasketCustomer, BasketItem } from "./carrito";
 import { Customer } from "./customer";
 
 export interface BasketOrder {
-  id: number;
+  id?: number;
   index: number;
   type: string;
   open: Date;

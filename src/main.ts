@@ -49,6 +49,8 @@ import {
 import { routes } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
 import { authInterceptor } from './app/interceptors/auth.interceptor';
+import { isDevMode } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
 
 // Registrar iconos
 addIcons({
@@ -100,6 +102,9 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideIonicAngular(),
-    provideHttpClient(withInterceptors([authInterceptor]))
+    provideHttpClient(withInterceptors([authInterceptor])), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          })
   ]
 }).catch(err => console.log(err));

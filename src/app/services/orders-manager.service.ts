@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SqliteOrdersService } from './sqlite-orders.service';
+import { PreOrderService, PreOrder } from './pre-order.service';
 import { BasketOrder, BasketListFilter } from '@models/basket-order';
 import { Branch } from '@models/branch';
 import { User } from '@models/user';
@@ -10,7 +11,10 @@ import { Observable, map } from 'rxjs';
 })
 export class OrdersManagerService {
 
-  constructor(private sqliteOrdersService: SqliteOrdersService) { }
+  constructor(
+    private sqliteOrdersService: SqliteOrdersService,
+    private preOrderService: PreOrderService
+  ) { }
 
   async createOrder(order: Partial<BasketOrder>): Promise<BasketOrder> {
     const newOrder: BasketOrder = {
@@ -85,8 +89,8 @@ export class OrdersManagerService {
     if (filter.customerName) {
       const searchTerm = filter.customerName.toLowerCase();
       orders = orders.filter(order => 
-        order.customer.name.toLowerCase().includes(searchTerm) ||
-        order.customer.lastName.toLowerCase().includes(searchTerm)
+        (order.customer.name && order.customer.name.toLowerCase().includes(searchTerm)) ||
+        (order.customer.lastName && order.customer.lastName.toLowerCase().includes(searchTerm))
       );
     }
 
@@ -141,8 +145,8 @@ export class OrdersManagerService {
         if (filter.customerName) {
           const searchTerm = filter.customerName.toLowerCase();
           filteredOrders = filteredOrders.filter(order => 
-            order.customer.name.toLowerCase().includes(searchTerm) ||
-            order.customer.lastName.toLowerCase().includes(searchTerm)
+            (order.customer.name && order.customer.name.toLowerCase().includes(searchTerm)) ||
+            (order.customer.lastName && order.customer.lastName.toLowerCase().includes(searchTerm))
           );
         }
 
@@ -188,11 +192,11 @@ export class OrdersManagerService {
     const term = searchTerm.toLowerCase();
 
     return allOrders.filter(order => 
-      order.id.toString().includes(term) ||
-      order.customer.name.toLowerCase().includes(term) ||
-      order.customer.lastName.toLowerCase().includes(term) ||
-      order.customer.email.toLowerCase().includes(term) ||
-      order.customer.cellphone.includes(term) ||
+      (order.id && order.id.toString().includes(term)) ||
+      (order.customer.name && order.customer.name.toLowerCase().includes(term)) ||
+      (order.customer.lastName && order.customer.lastName.toLowerCase().includes(term)) ||
+      (order.customer.email && order.customer.email.toLowerCase().includes(term)) ||
+      (order.customer.cellphone && order.customer.cellphone.includes(term)) ||
       order.state.toLowerCase().includes(term) ||
       order.branch.businessName.toLowerCase().includes(term)
     );
@@ -269,5 +273,46 @@ export class OrdersManagerService {
 
   async loadSampleData(): Promise<void> {
     return await this.sqliteOrdersService.loadSampleData();
+  }
+
+  // Pre-order methods
+  async createPreOrder(preOrder: Partial<BasketOrder>): Promise<PreOrder> {
+    return await this.preOrderService.savePreOrder(preOrder);
+  }
+
+  async getPreOrders(): Promise<PreOrder[]> {
+    return await this.preOrderService.getPreOrders();
+  }
+
+  getPreOrdersObservable(): Observable<PreOrder[]> {
+    return this.preOrderService.getPreOrdersObservable();
+  }
+
+  async getPreOrderById(id: number): Promise<PreOrder | null> {
+    return await this.preOrderService.getPreOrderById(id);
+  }
+
+  async updatePreOrder(preOrder: PreOrder): Promise<PreOrder> {
+    return await this.preOrderService.updatePreOrder(preOrder);
+  }
+
+  async deletePreOrder(id: number): Promise<void> {
+    return await this.preOrderService.deletePreOrder(id);
+  }
+
+  async syncPreOrderToRegularOrder(preOrderId: number): Promise<BasketOrder> {
+    return await this.preOrderService.convertToRegularOrder(preOrderId);
+  }
+
+  async exportPreOrdersToJSON(): Promise<string> {
+    return await this.preOrderService.exportPreOrdersToJSON();
+  }
+
+  async importPreOrdersFromJSON(jsonData: string): Promise<void> {
+    return await this.preOrderService.importPreOrdersFromJSON(jsonData);
+  }
+
+  async clearAllPreOrders(): Promise<void> {
+    return await this.preOrderService.clearAllPreOrders();
   }
 }

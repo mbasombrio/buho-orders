@@ -1,0 +1,37 @@
+.stat-item {
+  text-align: center;
+  
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--ion-color-primary);
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+  }
+}
+
+ion-segment {
+  margin: 16px 0;
+}
+
+ion-badge {
+  font-size: 0.7rem;
+}
+
+.ion-text-center ion-icon {
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+}
+
+ion-card {
+  margin-bottom: 16px;
+}
+
+ion-button {
+  margin-bottom: 8px;
+}

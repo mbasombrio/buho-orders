@@ -20,26 +20,38 @@ export class SqliteOrdersService {
   }
 
   private async initDB(): Promise<void> {
+    console.log('🔧 Initializing IndexedDB...');
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
+        console.error('❌ Error opening database');
         reject(new Error('Error opening database'));
       };
 
       request.onsuccess = () => {
+        console.log('✅ IndexedDB opened successfully');
         this.db = request.result;
-        this.loadOrders().then(() => resolve()).catch(() => resolve());
+        this.loadOrders().then(() => {
+          console.log('✅ Initial orders loaded');
+          resolve();
+        }).catch((err) => {
+          console.warn('⚠️ Error loading initial orders:', err);
+          resolve();
+        });
       };
 
       request.onupgradeneeded = (event) => {
+        console.log('🔄 Upgrading database schema...');
         const db = (event.target as IDBOpenDBRequest).result;
         
         if (!db.objectStoreNames.contains(this.storeName)) {
+          console.log('📦 Creating object store:', this.storeName);
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
           store.createIndex('state', 'state', { unique: false });
           store.createIndex('customerId', 'customer.id', { unique: false });
           store.createIndex('open', 'open', { unique: false });
+          console.log('✅ Object store created with indexes');
         }
       };
     });
@@ -50,20 +62,43 @@ export class SqliteOrdersService {
     mode: IDBTransactionMode,
     operation: (store: IDBObjectStore) => IDBRequest<T>
   ): Promise<T> {
-    await this.dbInitialized;
+    console.log(`🔄 executeTransaction called for store: ${storeName}, mode: ${mode}`);
+    
+    // Don't await dbInitialized here if we're being called FROM the initialization
+    // Just check if db exists
     
     return new Promise((resolve, reject) => {
       if (!this.db) {
+        console.error('❌ Database not initialized in executeTransaction');
         reject(new Error('Database not initialized'));
         return;
       }
 
+      console.log('🔄 Creating transaction...');
       const transaction = this.db.transaction([storeName], mode);
       const store = transaction.objectStore(storeName);
+      
+      console.log('🔄 Executing operation...');
       const request = operation(store);
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        console.log('✅ Transaction successful, result:', request.result);
+        resolve(request.result);
+      };
+      
+      request.onerror = () => {
+        console.error('❌ Transaction error:', request.error);
+        reject(request.error);
+      };
+      
+      transaction.oncomplete = () => {
+        console.log('✅ Transaction completed');
+      };
+      
+      transaction.onerror = () => {
+        console.error('❌ Transaction failed:', transaction.error);
+        reject(transaction.error);
+      };
     });
   }
 
@@ -85,15 +120,29 @@ export class SqliteOrdersService {
   }
 
   async getOrders(): Promise<BasketOrder[]> {
+    console.log('💾 SqliteOrdersService.getOrders() called');
+    console.log('⏳ Waiting for DB initialization...');
     await this.dbInitialized;
+    console.log('✅ DB initialized, executing transaction...');
     
-    const orders = await this.executeTransaction(
+    const orders = await this.executeTransactionSafe(
       this.storeName,
       'readonly',
       (store) => store.getAll()
     );
 
+    console.log('📦 Raw orders from IndexedDB:', orders);
     return orders || [];
+  }
+
+  // Safe version that waits for initialization
+  private async executeTransactionSafe<T>(
+    storeName: string,
+    mode: IDBTransactionMode,
+    operation: (store: IDBObjectStore) => IDBRequest<T>
+  ): Promise<T> {
+    await this.dbInitialized;
+    return this.executeTransaction(storeName, mode, operation);
   }
 
   getOrdersObservable(): Observable<BasketOrder[]> {
@@ -361,21 +410,26 @@ export class SqliteOrdersService {
   }
 
   private async loadOrders(): Promise<void> {
+    console.log('🔄 loadOrders() called (private method)');
     try {
       if (!this.db) {
-        console.warn('Database not ready, skipping initial load');
+        console.warn('⚠️ Database not ready, skipping initial load');
         return;
       }
       
+      console.log('📊 Executing transaction to get all orders...');
       const orders = await this.executeTransaction(
         this.storeName,
         'readonly',
         (store) => store.getAll()
       );
       
+      console.log('📋 loadOrders got:', orders);
+      console.log('🔔 Updating ordersSubject...');
       this.ordersSubject.next(orders || []);
+      console.log('✅ ordersSubject updated');
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('❌ Error in loadOrders:', error);
       this.ordersSubject.next([]);
     }
   }

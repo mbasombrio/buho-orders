@@ -23,6 +23,7 @@ export class DashboardPage implements OnInit {
   public appPages = [
     { title: 'Dashboard', url: '/dashboard', icon: 'apps' },
     { title: 'Pedidos', url: '/dashboard/orders', icon: 'cart' },
+    { title: 'Prueba SQLite', url: '/dashboard/test-sqlite', icon: 'server' },
   ];
 
   get displayClient(): string {

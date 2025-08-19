@@ -4,7 +4,21 @@
       "Bash(npm run build:*)",
       "Bash(npm start)",
       "Bash(ng serve:*)",
-      "Bash(npx ng serve:*)"
+      "Bash(npx ng serve:*)",
+      "Bash(npm install:*)",
+      "Bash(npx cap:*)",
+      "Bash(npx ionic generate:*)",
+      "Bash(rmdir:*)",
+      "Bash(rm:*)",
+      "Bash(npm start:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(ionic build)",
+      "Bash(ng build:*)",
+      "Bash(npx ng build:*)",
+      "Bash(ng add:*)",
+      "Bash(npx ng add:*)"
     ],
     "deny": [],
     "ask": []

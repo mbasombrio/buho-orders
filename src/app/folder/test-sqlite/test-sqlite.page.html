@@ -1,0 +1,227 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Prueba SQLite</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Prueba SQLite</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="ion-padding">
+    <!-- Estadísticas -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Estadísticas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ stats.total || 0 }}</h3>
+                <p>Total Órdenes</p>
+              </div>
+            </ion-col>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ preOrders.length }}</h3>
+                <p>Pre-órdenes</p>
+              </div>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="4">
+              <div class="stat-item">
+                <h3>{{ stats.pending || 0 }}</h3>
+                <p>Pendientes</p>
+              </div>
+            </ion-col>
+            <ion-col size="4">
+              <div class="stat-item">
+                <h3>{{ stats.invoiced || 0 }}</h3>
+                <p>Facturadas</p>
+              </div>
+            </ion-col>
+            <ion-col size="4">
+              <div class="stat-item">
+                <h3>{{ stats.cancelled || 0 }}</h3>
+                <p>Canceladas</p>
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Tabs -->
+    <ion-segment [(ngModel)]="activeTab" (ionChange)="onTabChange($event)">
+      <ion-segment-button value="orders">
+        <ion-label>Órdenes</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="preorders">
+        <ion-label>Pre-órdenes</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Tab: Órdenes Regulares -->
+    <div *ngIf="activeTab === 'orders'">
+      <!-- Botones de acción para órdenes -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Acciones - Órdenes</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-button expand="block" fill="solid" (click)="createSampleOrder()" [disabled]="isLoading">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Crear Orden Regular
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="loadSampleData()" [disabled]="isLoading">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            Cargar Datos de Muestra
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="exportOrders()" [disabled]="isLoading">
+            <ion-icon name="cloud-download-outline" slot="start"></ion-icon>
+            Exportar Órdenes
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="importOrders()" [disabled]="isLoading">
+            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+            Importar Órdenes
+          </ion-button>
+
+          <ion-button expand="block" color="danger" fill="outline" (click)="clearAllOrders()" [disabled]="isLoading">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Limpiar Todas las Órdenes
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Lista de órdenes regulares -->
+      <ion-card *ngIf="orders.length > 0">
+        <ion-card-header>
+          <ion-card-title>Órdenes Regulares ({{ orders.length }})</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item *ngFor="let order of orders; trackBy: trackByOrderId">
+              <ion-label>
+                <h3>Orden #{{ order.id }}</h3>
+                <p>Cliente: {{ order.customer.name }} {{ order.customer.lastName }}</p>
+                <p>Estado: {{ order.state }} | Total: ${{ order.totalAmount }}</p>
+                <p>Fecha: {{ order.open | date:'short' }}</p>
+              </ion-label>
+              <ion-badge slot="end" [color]="order.state === 'Pending' ? 'warning' : 'success'">
+                {{ order.state }}
+              </ion-badge>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Mensaje cuando no hay órdenes -->
+      <ion-card *ngIf="orders.length === 0 && !isLoading">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="document-outline" size="large"></ion-icon>
+          <h3>No hay órdenes regulares</h3>
+          <p>Crea una orden regular o carga datos de muestra para comenzar.</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Tab: Pre-órdenes -->
+    <div *ngIf="activeTab === 'preorders'">
+      <!-- Botones de acción para pre-órdenes -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Acciones - Pre-órdenes</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-button expand="block" fill="solid" (click)="createSamplePreOrder()" [disabled]="isLoading">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Crear Pre-orden (Offline)
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="exportPreOrders()" [disabled]="isLoading">
+            <ion-icon name="cloud-download-outline" slot="start"></ion-icon>
+            Exportar Pre-órdenes
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="importPreOrders()" [disabled]="isLoading">
+            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+            Importar Pre-órdenes
+          </ion-button>
+
+          <ion-button expand="block" color="danger" fill="outline" (click)="clearAllPreOrders()" [disabled]="isLoading">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Limpiar Todas las Pre-órdenes
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Lista de pre-órdenes -->
+      <ion-card *ngIf="preOrders.length > 0">
+        <ion-card-header>
+          <ion-card-title>Pre-órdenes Offline ({{ preOrders.length }})</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item *ngFor="let preOrder of preOrders; trackBy: trackByPreOrderId">
+              <ion-label>
+                <h3>Pre-orden {{ preOrder.tempId }}</h3>
+                <p>Cliente: {{ preOrder.customer.name }} {{ preOrder.customer.lastName }}</p>
+                <p>Estado: {{ preOrder.state }} | Total: ${{ preOrder.totalAmount }}</p>
+                <p>Creada: {{ preOrder.createdAt | date:'short' }}</p>
+              </ion-label>
+              
+              <ion-badge slot="end" color="medium">
+                OFFLINE
+              </ion-badge>
+              
+              <ion-button 
+                fill="clear" 
+                slot="end" 
+                color="primary"
+                (click)="syncPreOrder(preOrder)" 
+                [disabled]="isLoading">
+                <ion-icon name="cloud-upload-outline"></ion-icon>
+              </ion-button>
+              
+              <ion-button 
+                fill="clear" 
+                slot="end" 
+                color="danger" 
+                (click)="deletePreOrder(preOrder)" 
+                [disabled]="isLoading">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Mensaje cuando no hay pre-órdenes -->
+      <ion-card *ngIf="preOrders.length === 0 && !isLoading">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="document-text-outline" size="large"></ion-icon>
+          <h3>No hay pre-órdenes</h3>
+          <p>Crea una pre-orden offline para probar la funcionalidad.</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Spinner de carga -->
+    <div *ngIf="isLoading" class="ion-text-center ion-padding">
+      <ion-spinner name="circles"></ion-spinner>
+      <p>Procesando...</p>
+    </div>
+  </div>
+</ion-content>

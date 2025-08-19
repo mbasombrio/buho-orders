@@ -33,6 +33,10 @@ export const routes: Routes = [
       {
         path: 'folder/:id',
         component: FolderPage
+      },
+      {
+        path: 'test-sqlite',
+        loadComponent: () => import('./folder/test-sqlite/test-sqlite.page').then(m => m.TestSqlitePage)
       }
     ]
   },

@@ -478,7 +478,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   async createNewOrder(data: any) {
     try {
       const existingOrders = await this.sqliteOrdersService.getOrders();
-      const newId = existingOrders.length > 0 ? Math.max(...existingOrders.map(o => o.id)) + 1 : 1;
+      const newId = existingOrders.length > 0 ? Math.max(...existingOrders.map(o => o.id || 0)) + 1 : 1;
 
       const newOrder: BasketOrder = {
         deliveryAmount: 0,
