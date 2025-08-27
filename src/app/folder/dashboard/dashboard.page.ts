@@ -22,8 +22,8 @@ export class DashboardPage implements OnInit {
   // Páginas del menú sidebar
   public appPages = [
     { title: 'Dashboard', url: '/dashboard', icon: 'apps' },
-    { title: 'Pedidos', url: '/dashboard/orders', icon: 'cart' },
-    { title: 'Prueba SQLite', url: '/dashboard/test-sqlite', icon: 'server' },
+    { title: 'Pedidos off', url: '/dashboard/orders', icon: 'cart' },
+    { title: 'Artículos', url: '/dashboard/articles', icon: 'cube' },
   ];
 
   get displayClient(): string {

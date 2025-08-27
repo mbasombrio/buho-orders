@@ -1,6 +1,8 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { isDevMode } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,6 +25,8 @@ import {
   chevronForwardOutline,
   create,
   createOutline,
+  cube,
+  cubeOutline,
   heart,
   heartOutline,
   lockClosedOutline,
@@ -49,8 +53,6 @@ import {
 import { routes } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
 import { authInterceptor } from './app/interceptors/auth.interceptor';
-import { isDevMode } from '@angular/core';
-import { provideServiceWorker } from '@angular/service-worker';
 
 // Registrar iconos
 addIcons({
@@ -94,7 +96,9 @@ addIcons({
   'chevron-forward': chevronForward,
   'chevron-forward-outline': chevronForwardOutline,
   'create': create,
-  'create-outline': createOutline
+  'create-outline': createOutline,
+  'cube': cube,
+  'cube-outline': cubeOutline
 
 });
 

@@ -31,6 +31,14 @@ export const routes: Routes = [
         loadComponent: () => import('./folder/orders/orders.page').then(m => m.OrdersPage)
       },
       {
+        path: 'articles',
+        loadComponent: () => import('./folder/articles/articles.page').then(m => m.ArticlesPage)
+      },
+      {
+        path: 'add-order',
+        loadComponent: () => import('./folder/add-order/add-order.page').then(m => m.AddOrderPage)
+      },
+      {
         path: 'folder/:id',
         component: FolderPage
       },

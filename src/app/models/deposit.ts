@@ -1,9 +1,4 @@
-export class Deposit{
-   public id: number;
-   public name: string | null;
-
-   constructor(){
-      this.id = 0;
-      this.name = null;
-   }
+export interface Deposit{
+  id: number;
+  name: string | null;
 }

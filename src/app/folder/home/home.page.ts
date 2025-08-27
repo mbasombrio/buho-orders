@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { environment } from '../../../environments/environment';
+import { Article } from '../../models/article';
 
 @Component({
   selector: 'app-home',
@@ -14,10 +15,20 @@ import { environment } from '../../../environments/environment';
     IonicModule
   ]
 })
-export class HomePage implements OnInit {
+export class HomePage {
   currentYear = new Date().getFullYear();
   environment = environment;
   router = inject(Router);
+
+  // Estadísticas de artículos
+  articlesStats = {
+    total: 0,
+    available: 0,
+    lowStock: 0,
+    outOfStock: 0
+  };
+
+  recentArticles: Article[] = [];
 
   get displayClient(): string {
     if (environment.useMultiClient) {
@@ -27,10 +38,6 @@ export class HomePage implements OnInit {
       return environment.nameMultiClient || 'Plan Nube';
     }
   }
-
-  constructor() { }
-
-  ngOnInit() {}
 
   navigateTo(page: string) {
     this.router.navigate([`/dashboard/${page}`]);

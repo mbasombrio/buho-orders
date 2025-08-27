@@ -1,0 +1,55 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Gestión de Artículos</ion-title>
+    <ion-buttons slot="end">
+
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Acciones - Articulos</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button expand="block" fill="solid" (click)="importArticles()" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+        }
+        {{ isLoading() ? loadingMessage() : 'Importar Artículos' }}
+      </ion-button>
+      
+      @if (isLoading()) {
+        <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
+        <p class="loading-text">
+          <ion-icon name="information-circle" color="primary"></ion-icon>
+          Esta operación puede tomar varios minutos dependiendo de la cantidad de artículos
+        </p>
+      }
+
+
+      <ion-button expand="block" color="warning" fill="outline" (click)="recreateDatabase()" [disabled]="isLoading()">
+        <ion-icon name="construct-outline" slot="start"></ion-icon>
+        Recrear Base de Datos
+      </ion-button>
+
+      <ion-button expand="block" color="tertiary" fill="clear" (click)="checkDatabaseStatus()" [disabled]="isLoading()">
+        <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+        Verificar Estado de DB
+      </ion-button>
+
+      <!-- <ion-button expand="block" color="danger" fill="outline" (click)="clearAllOrders()" [disabled]="isLoading">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Limpiar Articulos
+      </ion-button> -->
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AlertController, IonicModule, ModalController } from '@ionic/angular';
-import { SqliteOrdersService } from '@services/sqlite-orders.service';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, IonicModule } from '@ionic/angular';
 import { BasketOrder } from '@models/basket-order';
-import { Branch } from '@models/branch';
-import { User } from '@models/user';
+import { SqliteOrdersService } from '@services/sqlite-orders.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -28,12 +27,12 @@ export class OrdersPage implements OnInit, OnDestroy {
       size: 25
     }
   };
-  
+
   private ordersSubscription?: Subscription;
+  router = inject(Router);
 
   constructor(
     private alertController: AlertController,
-    private modalController: ModalController,
     private sqliteOrdersService: SqliteOrdersService
   ) { }
 
@@ -48,25 +47,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   private async initializeOrders() {
-    try {
-      // Suscribirse primero a los cambios
-      this.ordersSubscription = this.sqliteOrdersService.getOrdersObservable().subscribe(orders => {
-        this.orders = orders;
-        this.orderResponse.rows = orders;
-        this.orderResponse.pagination.count = orders.length;
-        this.orderResponse.pagination.pages = Math.ceil(orders.length / this.orderResponse.pagination.size);
-      });
 
-      // Luego verificar si necesitamos datos de ejemplo
-      const ordersCount = await this.sqliteOrdersService.getOrdersCount();
-      if (ordersCount === 0) {
-        console.log('Loading sample data...');
-        await this.sqliteOrdersService.loadSampleData();
-      }
-    } catch (error) {
-      console.error('Error initializing orders:', error);
-      await this.showToast('Error al cargar las órdenes');
-    }
   }
 
   BasketOrderState = {
@@ -411,159 +392,7 @@ export class OrdersPage implements OnInit, OnDestroy {
     }, 2000);
   }
 
-  async addNewOrder() {
-    const alert = await this.alertController.create({
-      header: 'Crear Nuevo Pedido',
-      message: 'Ingrese los datos básicos del pedido:',
-      inputs: [
-        {
-          name: 'customerName',
-          type: 'text',
-          placeholder: 'Nombre del cliente',
-          attributes: {
-            required: true
-          }
-        },
-        {
-          name: 'customerLastName',
-          type: 'text',
-          placeholder: 'Apellido del cliente',
-          attributes: {
-            required: true
-          }
-        },
-        {
-          name: 'customerEmail',
-          type: 'email',
-          placeholder: 'Email del cliente'
-        },
-        {
-          name: 'customerPhone',
-          type: 'tel',
-          placeholder: 'Teléfono del cliente'
-        },
-        {
-          name: 'totalAmount',
-          type: 'number',
-          placeholder: 'Monto total',
-          attributes: {
-            min: 0,
-            step: 0.01
-          }
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Crear Pedido',
-          handler: (data) => {
-            if (data.customerName && data.customerLastName) {
-              this.createNewOrder(data);
-              return true;
-            } else {
-              this.showToast('Por favor complete al menos el nombre y apellido del cliente');
-              return false;
-            }
-          }
-        }
-      ]
-    });
-
-    await alert.present();
-  }
-
-  async createNewOrder(data: any) {
-    try {
-      const existingOrders = await this.sqliteOrdersService.getOrders();
-      const newId = existingOrders.length > 0 ? Math.max(...existingOrders.map(o => o.id || 0)) + 1 : 1;
-
-      const newOrder: BasketOrder = {
-        deliveryAmount: 0,
-        user: {
-          id: 1,
-          userName: "system",
-          password: "",
-          passVerify: "",
-          name: "system",
-          email: "",
-          cellphone: "",
-          role: 1,
-          roleDescription: "",
-          enabled: true,
-          branches: [],
-          client: null,
-          restrictions: null
-        },
-        id: newId,
-        index: existingOrders.length,
-        type: "Normal",
-        open: new Date(),
-        state: "Pending",
-        operator: "system",
-        customer: {
-          customerType: "MINORISTA",
-          id: Date.now(),
-          dni: "0",
-          city: "",
-          name: data.customerName,
-          lastName: data.customerLastName,
-          email: data.customerEmail || "",
-          cellphone: data.customerPhone || "",
-          address: "",
-          zipCode: "",
-          checkingAccountEnabled: false,
-          password: "",
-          branch: new Branch(),
-          enabled: true,
-          district: "",
-          state: "",
-          saldoFavor: 0.0,
-          listPrice: 3,
-          ivaSituation: "CONSUMIDOR_FINAL",
-          ctaCteLimitAmount: 0,
-          status: ""
-        },
-        customerDelivery: {
-          id: Date.now() + 1,
-          city: "",
-          name: data.customerName,
-          lastName: data.customerLastName,
-          email: data.customerEmail || "",
-          cellphone: data.customerPhone || "",
-          address: "",
-          zipCode: "",
-          state: ""
-        },
-        items: [],
-        totalAmount: data.totalAmount ? parseFloat(data.totalAmount) * 100 : 0,
-        branch: {
-          id: 1,
-          businessName: "Default",
-          address: "",
-          locality: "",
-          contact: "",
-          contactPhone: "",
-          contactEmail: "",
-          alternativeContactEmail: "",
-          afipCondition: "",
-          responsible: "",
-          cuit: "",
-          deposits: []
-        },
-        send: "",
-        payment: "",
-        paymentStatus: "",
-        observation: ""
-      };
-
-      await this.sqliteOrdersService.createOrder(newOrder);
-      this.showToast(`Nuevo pedido #${newId} creado exitosamente`);
-    } catch (error) {
-      console.error('Error creating new order:', error);
-      this.showToast('Error al crear el nuevo pedido');
-    }
+  addNewOrder() {
+    this.router.navigate(['/dashboard/add-order']);
   }
 }

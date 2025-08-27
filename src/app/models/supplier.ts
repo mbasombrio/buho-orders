@@ -1,4 +1,4 @@
-export interface Department {
+export interface Supplier {
   id: number;
   name: string;
 }
