@@ -4,8 +4,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideIonicAngular } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
 import { setAssetPath } from '@stencil/core';
+import { addIcons } from 'ionicons';
 import {
   add,
   addOutline,
@@ -28,6 +28,7 @@ import {
   createOutline,
   cube,
   cubeOutline,
+  cubeSharp,
   heart,
   heartOutline,
   lockClosedOutline,
@@ -99,8 +100,8 @@ addIcons({
   'create': create,
   'create-outline': createOutline,
   'cube': cube,
-  'cube-outline': cubeOutline
-
+  'cube-outline': cubeOutline,
+  'cube-sharp': cubeSharp
 });
 
 // Set asset path for icons
@@ -109,7 +110,7 @@ setAssetPath('./svg/');
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideIonicAngular({ 
+    provideIonicAngular({
       mode: 'md',
       innerHTMLTemplatesEnabled: true,
       _forceStatusbarPadding: true

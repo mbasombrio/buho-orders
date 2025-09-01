@@ -3,27 +3,43 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Pedido</ion-title>
-    <ion-buttons slot="end">
-
-    </ion-buttons>
+    <ion-title>Nuevo Pedido</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-
   <ion-card>
     <ion-card-content>
+      <ion-item>
+        <ion-select label="Cliente" label-placement="floating" placeholder="Seleccione un cliente">
+          <ion-select-option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }} {{ customer.lastName }}</ion-select-option>
+        </ion-select>
+      </ion-item>
 
-
-
-
-
+      <ion-item>
+        <ion-searchbar [(ngModel)]="searchQuery" placeholder="Buscar por SKU o nombre"></ion-searchbar>
+        <ion-button (click)="searchArticles()">Buscar</ion-button>
+      </ion-item>
     </ion-card-content>
   </ion-card>
 
-
-
-
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Artículos del Pedido</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let item of orderItems">
+          <ion-label>
+            <h2>{{ item.article.name }}</h2>
+            <p>SKU: {{ item.article.sku }} | Cantidad: {{ item.quantity }}</p>
+          </ion-label>
+        </ion-item>
+        <ion-item *ngIf="orderItems.length === 0">
+          <ion-label>No hay artículos en el pedido.</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 
 </ion-content>
