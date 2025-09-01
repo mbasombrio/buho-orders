@@ -1,8 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, retry, timeout, catchError, throwError } from 'rxjs';
+import { catchError, Observable, retry, throwError, timeout } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Customer } from '../models/customer';
+import { ResponseDTO } from './../models/response';
 
 @Injectable({
   providedIn: 'root'
@@ -16,11 +17,14 @@ export class ClientsService {
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000; // 2 segundos entre reintentos
 
-  getCustomers(): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`${this.service()}/importCustomers`, {
+  getCustomers(): Observable<ResponseDTO<Customer>> {
+    return this.http.get<ResponseDTO<Customer>>(`${this.service()}/customersList`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
+      },
+      params: {
+        page: '0',
       }
     }).pipe(
       timeout(this.TIMEOUT_MS),
@@ -42,18 +46,18 @@ export class ClientsService {
     if (error.name === 'TimeoutError') {
       return true;
     }
-    
+
     if (error instanceof HttpErrorResponse) {
       const retryableStatusCodes = [0, 408, 429, 500, 502, 503, 504];
       return retryableStatusCodes.includes(error.status);
     }
-    
+
     return false;
   }
 
   private handleError(error: any): Observable<never> {
     let errorMessage: string;
-    
+
     if (error.name === 'TimeoutError') {
       errorMessage = 'La solicitud tardó demasiado tiempo. El servidor puede estar procesando muchos datos.';
     } else if (error instanceof HttpErrorResponse) {

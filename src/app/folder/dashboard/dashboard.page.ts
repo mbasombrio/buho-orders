@@ -23,7 +23,7 @@ export class DashboardPage implements OnInit {
   public appPages = [
     { title: 'Dashboard', url: '/dashboard', icon: 'apps' },
     { title: 'Pedidos off', url: '/dashboard/orders', icon: 'cart' },
-    { title: 'Artículos', url: '/dashboard/articles', icon: 'cube' },
+    { title: 'Datos', url: '/dashboard/data', icon: 'cube' },
   ];
 
   get displayClient(): string {

@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { setAssetPath } from '@stencil/core';
 import {
   add,
   addOutline,
@@ -102,10 +103,17 @@ addIcons({
 
 });
 
+// Set asset path for icons
+setAssetPath('./svg/');
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideIonicAngular(),
+    provideIonicAngular({ 
+      mode: 'md',
+      innerHTMLTemplatesEnabled: true,
+      _forceStatusbarPadding: true
+    }),
     provideHttpClient(withInterceptors([authInterceptor])), provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
             registrationStrategy: 'registerWhenStable:30000'

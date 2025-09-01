@@ -36,7 +36,7 @@ export const routes: Routes = [
         loadComponent: () => import('./folder/orders/orders.page').then(m => m.OrdersPage)
       },
       {
-        path: 'articles',
+        path: 'data',
         loadComponent: () => import('./folder/articles/articles.page').then(m => m.ArticlesPage)
       },
       {

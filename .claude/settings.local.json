@@ -20,7 +20,8 @@
       "Bash(ng add:*)",
       "Bash(npx ng add:*)",
       "Bash(npm run ng:*)",
-      "Bash(ionic serve:*)"
+      "Bash(ionic serve:*)",
+      "Bash(npm update:*)"
     ],
     "deny": [],
     "ask": []

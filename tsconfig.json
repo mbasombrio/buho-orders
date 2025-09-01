@@ -23,6 +23,7 @@
       "ES2022",
       "dom"
     ],
+    "skipLibCheck": true,
     "paths": {
       "@models/*": [
         "src/app/models/*"
