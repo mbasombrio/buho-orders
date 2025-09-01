@@ -5,6 +5,9 @@ import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Article } from '@models/article';
 import { ItemsService } from '@services/items.service';
 import { SqliteArticlesService } from '@services/sqlite-articles.service';
+import { ClientsService } from '@services/clients.service';
+import { SqliteClientsService } from '@services/sqlite-clients.service';
+import { Customer } from '@models/customer';
 
 @Component({
   selector: 'app-articles',
@@ -22,10 +25,62 @@ export class ArticlesPage {
   loadingMessage = signal<string>('Importando artículos...');
   itemsService = inject(ItemsService);
   sqliteArticlesService = inject(SqliteArticlesService);
+  clientsService = inject(ClientsService);
+  sqliteClientsService = inject(SqliteClientsService);
   toastController = inject(ToastController);
   alertController = inject(AlertController);
 
   constructor() {}
+
+  async importClients() {
+    this.isLoading.set(true);
+    this.loadingMessage.set('Importando clientes...');
+
+    const loadingToast = await this.toastController.create({
+      message: 'Esta operación puede tardar unos minutos debido a la cantidad de clientes',
+      duration: 5000,
+      position: 'top',
+      color: 'primary',
+      icon: 'information-circle'
+    });
+    await loadingToast.present();
+
+    this.clientsService.getCustomers().subscribe({
+      next: async (response: Customer[]) => {
+        console.log('Clients imported successfully:', response);
+        this.loadingMessage.set('Guardando clientes en base de datos local...');
+        
+        try {
+          const saveResult = await this.sqliteClientsService.replaceAllClients(response);
+          
+          this.isLoading.set(false);
+          this.loadingMessage.set('Importando clientes...');
+          
+          if (saveResult.errors.length > 0) {
+            await this.showWarningAlert(
+              'Importación parcial de clientes',
+              `${saveResult.success} clientes guardados exitosamente. ${saveResult.errors.length} errores encontrados.`,
+              saveResult.errors
+            );
+          } else {
+            await this.showSuccessToast(`Base de datos actualizada: ${saveResult.success} clientes importados exitosamente`);
+          }
+        } catch (error) {
+          this.isLoading.set(false);
+          this.loadingMessage.set('Importando clientes...');
+          console.error('Error updating clients database:', error);
+          await this.showErrorAlert('Error al actualizar base de datos de clientes', error);
+        }
+      },
+      error: async (error) => {
+        this.isLoading.set(false);
+        this.loadingMessage.set('Importando clientes...');
+        console.error('Import error:', error);
+        
+        await this.showErrorAlert('Error al importar clientes', error);
+      }
+    });
+  }
 
   async importArticles() {
     this.isLoading.set(true);

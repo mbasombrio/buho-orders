@@ -25,6 +25,15 @@
         }
         {{ isLoading() ? loadingMessage() : 'Importar Artículos' }}
       </ion-button>
+
+      <ion-button expand="block" fill="solid" color="secondary" (click)="importClients()" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon name="people-outline" slot="start"></ion-icon>
+        }
+        {{ isLoading() ? 'Importando...' : 'Importar Clientes' }}
+      </ion-button>
       
       @if (isLoading()) {
         <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
