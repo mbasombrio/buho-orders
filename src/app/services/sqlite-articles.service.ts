@@ -1,142 +1,45 @@
 import { Injectable } from '@angular/core';
 import { Article } from '@models/article';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { IndexedDbService } from './database.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SqliteArticlesService {
-  private dbName = 'articles_db';
-  private dbVersion = 1;
   private storeName = 'articles';
   private db: IDBDatabase | null = null;
 
   private articlesSubject = new BehaviorSubject<Article[]>([]);
   public articles$ = this.articlesSubject.asObservable();
 
-  constructor() {
+  constructor(private indexedDbService: IndexedDbService) {
     this.initDatabase();
   }
 
   private async initDatabase(): Promise<void> {
-    try {
-      await this.createDatabase();
-    } catch (error) {
-      console.error('Error initializing database, attempting to recreate:', error);
-      await this.recreateDatabase();
-    }
+    this.db = await this.indexedDbService.getDb();
+    this.loadArticles();
   }
 
-  private async createDatabase(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
-
-      request.onerror = () => {
-        console.error('Error opening database');
-        reject(request.error);
-      };
-
-      request.onsuccess = () => {
-        this.db = request.result;
-        console.log('Database opened successfully');
-
-        // Verificar que el object store existe
-        if (!this.db.objectStoreNames.contains(this.storeName)) {
-          console.warn('Object store missing, recreating database');
-          this.db.close();
-          this.recreateDatabase().then(resolve).catch(reject);
-          return;
-        }
-
-        this.loadArticles();
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-
-        console.log('Database upgrade needed, creating object store');
-
-        // Eliminar store existente si existe
-        if (db.objectStoreNames.contains(this.storeName)) {
-          db.deleteObjectStore(this.storeName);
-        }
-
-        // Crear nuevo store
-        const store = db.createObjectStore(this.storeName, { keyPath: 'sku' });
-        store.createIndex('name', 'name', { unique: false });
-        store.createIndex('department', 'department.name', { unique: false });
-        store.createIndex('unitPrice1', 'unitPrice1', { unique: false });
-        store.createIndex('unitInStock', 'unitInStock', { unique: false });
-
-        console.log('Object store and indexes created successfully');
-      };
-    });
-  }
-
-  // Método público para recrear la base de datos
   async recreateDatabase(): Promise<void> {
-    console.log('Recreating database...');
-
-    // Cerrar conexión existente si existe
-    if (this.db) {
-      this.db.close();
-      this.db = null;
-    }
-
-    // Eliminar base de datos existente
-    return new Promise((resolve, reject) => {
-      const deleteRequest = indexedDB.deleteDatabase(this.dbName);
-
-      deleteRequest.onerror = () => {
-        console.error('Error deleting database');
-        reject(deleteRequest.error);
-      };
-
-      deleteRequest.onsuccess = () => {
-        console.log('Database deleted successfully, creating new one');
-        this.createDatabase().then(resolve).catch(reject);
-      };
-
-      deleteRequest.onblocked = () => {
-        console.warn('Database deletion blocked, retrying...');
-        setTimeout(() => {
-          this.createDatabase().then(resolve).catch(reject);
-        }, 1000);
-      };
-    });
+    await this.indexedDbService.recreateDatabase();
+    await this.initDatabase();
   }
 
-  // Método para verificar el estado de la base de datos
   async checkDatabaseHealth(): Promise<{ exists: boolean; hasStore: boolean; version: number }> {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(this.dbName);
-
-      request.onsuccess = () => {
-        const db = request.result;
-        const result = {
-          exists: true,
-          hasStore: db.objectStoreNames.contains(this.storeName),
-          version: db.version
-        };
-        db.close();
-        resolve(result);
-      };
-
-      request.onerror = () => {
-        resolve({ exists: false, hasStore: false, version: 0 });
-      };
-    });
+    const health = await this.indexedDbService.checkDatabaseHealth();
+    return {
+      exists: health.exists,
+      hasStore: health.hasArticlesStore,
+      version: health.version
+    };
   }
 
   async createArticle(article: Article): Promise<Article> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], 'readwrite');
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.add(article);
 
@@ -154,13 +57,9 @@ export class SqliteArticlesService {
   }
 
   async getArticles(): Promise<Article[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], 'readonly');
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.getAll();
 
@@ -182,13 +81,9 @@ export class SqliteArticlesService {
   }
 
   async getArticleBySku(sku: string): Promise<Article | null> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], 'readonly');
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.get(sku);
 
@@ -208,12 +103,10 @@ export class SqliteArticlesService {
     const errors: string[] = [];
     let success = 0;
 
-    if (!this.db) {
-      throw new Error('Database not initialized');
-    }
+    const db = await this.indexedDbService.getDb();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
       transaction.oncomplete = () => {
@@ -227,13 +120,11 @@ export class SqliteArticlesService {
         reject(transaction.error);
       };
 
-      // 1. Primero limpiar todos los artículos existentes
       const clearRequest = store.clear();
 
       clearRequest.onsuccess = () => {
         console.log('All existing articles cleared');
 
-        // 2. Luego agregar los nuevos artículos
         articles.forEach((article, index) => {
           if (!article.sku) {
             errors.push(`Artículo ${index + 1}: SKU`);
@@ -259,17 +150,14 @@ export class SqliteArticlesService {
     });
   }
 
-  // Mantener el método original para otras operaciones
   async saveMultipleArticles(articles: Article[]): Promise<{ success: number; errors: string[] }> {
     const errors: string[] = [];
     let success = 0;
 
-    if (!this.db) {
-      throw new Error('Database not initialized');
-    }
+    const db = await this.indexedDbService.getDb();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
       transaction.oncomplete = () => {
@@ -303,13 +191,9 @@ export class SqliteArticlesService {
   }
 
   async clearAllArticles(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], 'readwrite');
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.clear();
 
@@ -327,13 +211,9 @@ export class SqliteArticlesService {
   }
 
   async getArticlesCount(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], 'readonly');
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.count();
 

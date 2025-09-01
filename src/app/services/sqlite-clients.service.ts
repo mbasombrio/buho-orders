@@ -1,34 +1,35 @@
 import { Injectable } from '@angular/core';
 import { Customer } from '@models/customer';
 import { BehaviorSubject } from 'rxjs';
+import { IndexedDbService } from './database.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SqliteClientsService {
-  private dbName = 'clients_db';
-  private dbVersion = 1;
   private storeName = 'clients';
   private db: IDBDatabase | null = null;
 
-    private customersSubject = new BehaviorSubject<Customer[]>([]);
-    public customers$ = this.customersSubject.asObservable();
+  private customersSubject = new BehaviorSubject<Customer[]>([]);
+  public customers$ = this.customersSubject.asObservable();
 
-  constructor() {
-
+  constructor(private indexedDbService: IndexedDbService) {
+    this.initDatabase();
   }
 
-  // Aquí se implementarán los métodos para interactuar con la base de datos de clientes
+  private async initDatabase(): Promise<void> {
+    this.db = await this.indexedDbService.getDb();
+    this.loadCustomers();
+  }
+
   async replaceAllClients(clients: Customer[]): Promise<{ success: number, errors: string[] }> {
     const errors: string[] = [];
     let success = 0;
 
-    if (!this.db) {
-      throw new Error('Database not initialized');
-    }
+    const db = await this.indexedDbService.getDb();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
       transaction.oncomplete = () => {
@@ -42,13 +43,11 @@ export class SqliteClientsService {
         reject(transaction.error);
       };
 
-      // 1. Primero limpiar todos los artículos existentes
       const clearRequest = store.clear();
 
       clearRequest.onsuccess = () => {
-        console.log('All existing articles cleared');
+        console.log('All existing clients cleared');
 
-        // 2. Luego agregar los nuevos clientes
         clients.forEach((client, index) => {
           if (!client.id) {
             errors.push(`Cliente ${index + 1}: ID`);
@@ -74,40 +73,33 @@ export class SqliteClientsService {
     });
   }
 
-
-
-
   private async loadCustomers(): Promise<void> {
     try {
-      const articles = await this.getCustomers();
-      this.customersSubject.next(articles);
+      const customers = await this.getCustomers();
+      this.customersSubject.next(customers);
     } catch (error) {
       console.error('Error loading customers:', error);
       this.customersSubject.next([]);
     }
   }
 
-   async getCustomers(): Promise<Customer[]> {
-      return new Promise((resolve, reject) => {
-        if (!this.db) {
-          reject(new Error('Database not initialized'));
-          return;
-        }
+  async getCustomers(): Promise<Customer[]> {
+    return new Promise(async (resolve, reject) => {
+      const db = await this.indexedDbService.getDb();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      const request = store.getAll();
 
-        const transaction = this.db.transaction([this.storeName], 'readonly');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.getAll();
+      request.onsuccess = () => {
+        const customers = request.result || [];
+        console.log('Customers retrieved:', customers.length);
+        resolve(customers);
+      };
 
-        request.onsuccess = () => {
-          const articles = request.result || [];
-          console.log('Articles retrieved:', articles.length);
-          resolve(articles);
-        };
-
-        request.onerror = () => {
-          console.error('Error getting customers');
-          reject(request.error);
-        };
-      });
-    }
+      request.onerror = () => {
+        console.error('Error getting customers');
+        reject(request.error);
+      };
+    });
+  }
 }

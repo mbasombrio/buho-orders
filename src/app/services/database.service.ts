@@ -5,6 +5,108 @@ import { BasketOrder } from '@models/basket-order';
 import { SqliteOrdersService } from './sqlite-orders.service';
 import { NativeSqliteService } from './native-sqlite.service';
 
+@Injectable({
+  providedIn: 'root'
+})
+export class IndexedDbService {
+  private dbName = 'buho_orders_db';
+  private dbVersion = 1;
+  private db: IDBDatabase | null = null;
+  private dbInitialized: Promise<void>;
+
+  constructor() {
+    this.dbInitialized = this.initDB();
+  }
+
+  private async initDB(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => {
+        console.error('Error opening database');
+        reject(request.error);
+      };
+
+      request.onsuccess = () => {
+        this.db = request.result;
+        console.log('Database opened successfully');
+        resolve();
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        console.log('Database upgrade needed');
+
+        if (!db.objectStoreNames.contains('articles')) {
+          const articlesStore = db.createObjectStore('articles', { keyPath: 'sku' });
+          articlesStore.createIndex('name', 'name', { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains('clients')) {
+          const clientsStore = db.createObjectStore('clients', { keyPath: 'id' });
+          clientsStore.createIndex('name', 'name', { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains('orders')) {
+          const ordersStore = db.createObjectStore('orders', { keyPath: 'id' });
+          ordersStore.createIndex('state', 'state', { unique: false });
+          ordersStore.createIndex('customerId', 'customer.id', { unique: false });
+        }
+      };
+    });
+  }
+
+  public async getDb(): Promise<IDBDatabase> {
+    await this.dbInitialized;
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    return this.db;
+  }
+
+  async recreateDatabase(): Promise<void> {
+    console.log('Recreating database...');
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
+    return new Promise((resolve, reject) => {
+      const deleteRequest = indexedDB.deleteDatabase(this.dbName);
+      deleteRequest.onerror = () => {
+        console.error('Error deleting database');
+        reject(deleteRequest.error);
+      };
+      deleteRequest.onsuccess = () => {
+        console.log('Database deleted successfully, creating new one');
+        this.dbInitialized = this.initDB();
+        this.dbInitialized.then(resolve).catch(reject);
+      };
+    });
+  }
+
+  async checkDatabaseHealth(): Promise<{ exists: boolean; hasArticlesStore: boolean; hasClientsStore: boolean; hasOrdersStore: boolean; version: number }> {
+    return new Promise((resolve) => {
+      const request = indexedDB.open(this.dbName);
+      request.onsuccess = () => {
+        const db = request.result;
+        const result = {
+          exists: true,
+          hasArticlesStore: db.objectStoreNames.contains('articles'),
+          hasClientsStore: db.objectStoreNames.contains('clients'),
+          hasOrdersStore: db.objectStoreNames.contains('orders'),
+          version: db.version
+        };
+        db.close();
+        resolve(result);
+      };
+      request.onerror = () => {
+        resolve({ exists: false, hasArticlesStore: false, hasClientsStore: false, hasOrdersStore: false, version: 0 });
+      };
+    });
+  }
+}
+
+
 export interface DatabaseService {
   createOrder(order: BasketOrder): Promise<BasketOrder>;
   getOrders(): Promise<BasketOrder[]>;
@@ -59,6 +161,8 @@ export class UnifiedDatabaseService implements DatabaseService {
     return this.activeService.getOrdersObservable();
   }
 
+
+
   async getOrderById(id: number): Promise<BasketOrder | null> {
     return this.activeService.getOrderById(id);
   }
@@ -79,7 +183,7 @@ export class UnifiedDatabaseService implements DatabaseService {
     if ('getOrdersByCustomerId' in this.activeService) {
       return this.activeService.getOrdersByCustomerId!(customerId);
     }
-    
+
     const allOrders = await this.getOrders();
     return allOrders.filter(order => order.customer.id === customerId);
   }
