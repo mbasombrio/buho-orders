@@ -8,6 +8,7 @@ import { AuthStateService } from '../../services/auth-state.service';
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss'],
   standalone: true,
   imports: [
     CommonModule,

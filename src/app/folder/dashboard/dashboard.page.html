@@ -4,12 +4,11 @@
   <!-- Sidebar Menu -->
   <ion-menu contentId="main-content" type="overlay">
     <ion-content>
+      <div class="client-info">
+        <h1>BuhoManager</h1>
+        <span>{{ displayClient }}</span>
+      </div>
       <ion-list id="inbox-list">
-        <div class="client-info">
-          <h1>BuhoManager</h1>
-          <span>{{ displayClient }}</span>
-        </div>
-
         @for (p of appPages; track p; let i = $index) {
         <ion-menu-toggle auto-hide="false">
           <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"

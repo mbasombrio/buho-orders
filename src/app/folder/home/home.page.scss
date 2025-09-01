@@ -310,7 +310,7 @@
     margin-top: auto;
     padding: 2rem 1rem 1rem 1rem;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px 20px 0 0;
+    border-radius: 20px 20px 20px 20px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -450,7 +450,7 @@
 // Estilos para las nuevas secciones de artículos
 .stats-section {
   margin-top: 2rem;
-  
+
   .stats-title {
     font-size: 1.5rem;
     font-weight: 600;

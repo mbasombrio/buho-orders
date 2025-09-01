@@ -58,22 +58,6 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
     }
-
-    .client-info {
-      margin-top: 0.5rem;
-      padding: 0.3rem 0.6rem;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-
-      .client-label {
-        font-size: 0.75rem;
-        color: var(--sidebar-note-color);
-        font-weight: 600;
-        margin: 0;
-        text-align: center;
-      }
-    }
   }
 
   .sidebar-content {
@@ -176,8 +160,45 @@
   height: 100vh;
   overflow-y: auto;
   background: linear-gradient(135deg,
-    rgba(56, 128, 255, 0.05) 0%,
-    rgba(12, 209, 232, 0.05) 100%);
+      rgba(56, 128, 255, 0.05) 0%,
+      rgba(12, 209, 232, 0.05) 100%);
+}
+
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Center content horizontally */
+  justify-content: center;
+  /* Center content vertically */
+  background: rgba(56, 128, 255, 0.9);
+  padding: 0 16px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+  letter-spacing: -.5px;
+  line-height: 1;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  height: var(--ion-toolbar-height, 76px);
+  /* Set height to match toolbar */
+
+  h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+    letter-spacing: -.5px;
+    line-height: 1;
+  }
+
+  span {
+    font-size: 0.75rem;
+    color: var(--sidebar-note-color);
+    font-weight: 600;
+    margin: 0;
+    text-align: center;
+  }
 }
 
 // Responsive adjustments
@@ -210,4 +231,3 @@
     flex: 1;
   }
 }
-
